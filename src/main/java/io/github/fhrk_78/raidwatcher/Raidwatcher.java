@@ -7,11 +7,13 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.UUID;
@@ -55,16 +57,33 @@ public final class Raidwatcher extends JavaPlugin implements Listener {
     public void onPlayerLogin(PlayerLoginEvent event) {
         if (event.getPlayer().hasPermission("raidwatcher.bypass")) return;
 
-        loginRate++;
-
-        if (loginRate > CONFIG.highRateLoginBlocker().allowed()) {
-            try {
-                lockdownEnd = DateUtil.parseDateDiff(CONFIG.highRateLoginBlocker().cooldown(), true);
-            } catch (Exception ignored) {}
+        //同じIPで別アカウントの同時参加
+        if (CONFIG.oneIPMultiAccountBlocker().enable() && getServer()
+                .getOnlinePlayers()
+                .stream()
+                .map(Player::getAddress)
+                .filter(Objects::nonNull)
+                .map(InetSocketAddress::getHostString)
+                .anyMatch(ip -> ip.equals(event.getAddress().getHostAddress()))
+        ) {
+            event.disallow(PlayerLoginEvent.Result.KICK_OTHER,
+                    Component.text("同一IPでの同時ログインは禁止されています。ご確認ください。").color(TextColor.color(0xFF0000)));
         }
 
-        if (lockdownEnd > System.currentTimeMillis())
-            event.disallow(PlayerLoginEvent.Result.KICK_OTHER, Component.text("現在、サーバーが大変込み合っておりますので入室制限をかけております。時間を置いて再度お試しください。"));
+        //高速複数アカウントログインへの対抗
+        if (CONFIG.highRateLoginBlocker().enable()) {
+            loginRate++;
+
+            if (loginRate > CONFIG.highRateLoginBlocker().allowed()) {
+                try {
+                    lockdownEnd = DateUtil.parseDateDiff(CONFIG.highRateLoginBlocker().cooldown(), true);
+                } catch (Exception ignored) {}
+            }
+
+            if (lockdownEnd > System.currentTimeMillis())
+                event.disallow(PlayerLoginEvent.Result.KICK_OTHER,
+                        Component.text("現在、サーバーが大変込み合っておりますので入室制限をかけております。時間を置いて再度お試しください。"));
+        }
     }
 
     @EventHandler
@@ -73,23 +92,25 @@ public final class Raidwatcher extends JavaPlugin implements Listener {
 
         final UUID uuid = event.getPlayer().getUniqueId();
 
-        chatRate.put(uuid, chatRate.getOrDefault(uuid, 0) + 1);
-        if (chatRate.get(uuid) > CONFIG.spamDetector().allowed()) {
-            event.setCancelled(true);
-            try {
-                var user = ess.getUser(event.getPlayer());
-                user.setMuted(true);
-                user.setMuteReason("spam");
-                user.setMuteTimeout(DateUtil.parseDateDiff(CONFIG.spamDetector().penaltyMute(), true));
-            } catch (Exception ignored) {}
-            if (CONFIG.spamDetector().penaltyKick()) Bukkit.getScheduler().runTask(this, () -> {
-                if (getServer().getPlayer(uuid) != null) Objects.requireNonNull(getServer().getPlayer(uuid))
-                        .kick(Component.text("スパム行為が検知されました。")
-                                .color(TextColor.color(0xFF0000)));});
+        if (CONFIG.spamDetector().enable()) {
+            chatRate.put(uuid, chatRate.getOrDefault(uuid, 0) + 1);
+            if (chatRate.get(uuid) > CONFIG.spamDetector().allowed()) {
+                event.setCancelled(true);
+                try {
+                    var user = ess.getUser(event.getPlayer());
+                    user.setMuted(true);
+                    user.setMuteReason("spam");
+                    user.setMuteTimeout(DateUtil.parseDateDiff(CONFIG.spamDetector().penaltyMute(), true));
+                } catch (Exception ignored) {}
+                if (CONFIG.spamDetector().penaltyKick()) Bukkit.getScheduler().runTask(this, () -> {
+                    if (getServer().getPlayer(uuid) != null) Objects.requireNonNull(getServer().getPlayer(uuid))
+                            .kick(Component.text("スパム行為が検知されました。")
+                                    .color(TextColor.color(0xFF0000)));});
+            }
         }
 
         //ChatFilter
-        if (CONFIG.chatFilter().pattern().stream().anyMatch(word -> PlainTextComponentSerializer
+        if (CONFIG.chatFilter().enable() && CONFIG.chatFilter().pattern().stream().anyMatch(word -> PlainTextComponentSerializer
                 .plainText()
                 .serialize(event.message())
                 .matches(word))) {

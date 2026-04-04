@@ -7,45 +7,58 @@ import java.util.List;
 public record Config(
         HighRateLoginBlocker highRateLoginBlocker,
         SpamDetector spamDetector,
-        ChatFilter chatFilter
+        ChatFilter chatFilter,
+        OneIPMultiAccountBlocker oneIPMultiAccountBlocker
 ) {
     static class IllegalConfigFormatException extends Exception {}
 
     static Config asConfig(FileConfiguration file) throws IllegalConfigFormatException {
         return new Config(
                 new HighRateLoginBlocker(
+                        file.getBoolean("HighRateLoginBlocker.enable"),
                         file.getInt("HighRateLoginBlocker.allowed"),
                         file.getInt("HighRateLoginBlocker.per"),
                         file.getString("HighRateLoginBlocker.cooldown")
                 ),
                 new SpamDetector(
+                        file.getBoolean("SpamDetector.enable"),
                         file.getInt("SpamDetector.allowed"),
                         file.getInt("SpamDetector.per"),
                         file.getString("SpamDetector.penalty.mute"),
                         file.getBoolean("SpamDetector.penalty.kick")
                 ),
                 new ChatFilter(
+                        file.getBoolean("ChatFilter.enable"),
                         file.getStringList("ChatFilter.pattern"),
                         file.getString("ChatFilter.penalty.mute"),
                         file.getBoolean("ChatFilter.penalty.kick")
+                ),
+                new OneIPMultiAccountBlocker(
+                        file.getBoolean("OneIPMultiAccountBlocker.enable")
                 )
         );
     }
 
     record HighRateLoginBlocker(
+            boolean enable,
             int allowed,
             int per,
             String cooldown
     ) {}
     record SpamDetector(
+            boolean enable,
             int allowed,
             int per,
             String penaltyMute,
             boolean penaltyKick
     ) {}
     record ChatFilter(
+            boolean enable,
             List<String> pattern,
             String penaltyMute,
             boolean penaltyKick
+    ) {}
+    record OneIPMultiAccountBlocker(
+            boolean enable
     ) {}
 }
