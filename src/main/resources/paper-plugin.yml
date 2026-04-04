@@ -6,6 +6,12 @@ main: io.github.fhrk_78.raidwatcher.Raidwatcher
 api-version: '1.20'
 load: POSTWORLD
 
+dependencies:
+  server:
+    Essentials:
+      load: AFTER
+      required: true
+
 permissions:
   raidwatcher.bypass:
     description: プレイヤーを監視対象から除外・ログイン規制中でも参加可能
