@@ -45,18 +45,10 @@ public final class Raidwatcher extends JavaPlugin implements Listener {
 
         //イベント関連初期化
         getServer().getPluginManager().registerEvents(this, this);
-        getServer().getScheduler().runTaskTimer(this, this::resetLoginRate, 0, CONFIG.highRateLoginBlocker().per());
-        getServer().getScheduler().runTaskTimer(this, this::resetChatRate, 0, CONFIG.spamDetector().per());
+        getServer().getScheduler().runTaskTimer(this, () -> loginRate = 0, 0, CONFIG.highRateLoginBlocker().per());
+        getServer().getScheduler().runTaskTimer(this, () -> chatRate.replaceAll((u, v) -> 0), 0, CONFIG.spamDetector().per());
 
         ess = (Essentials) getServer().getPluginManager().getPlugin("essentials");
-    }
-
-    public void resetLoginRate() {
-        loginRate = 0;
-    }
-
-    public void resetChatRate() {
-        chatRate.replaceAll((u, v) -> 0);
     }
 
     @EventHandler
