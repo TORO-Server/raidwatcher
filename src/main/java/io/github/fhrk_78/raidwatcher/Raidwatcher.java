@@ -1,7 +1,6 @@
 package io.github.fhrk_78.raidwatcher;
 
-import io.github.fhrk_78.raidwatcher.penaltyLog.MutePenaltyLog;
-import io.github.fhrk_78.raidwatcher.penaltyLog.PenaltyLog;
+import com.earth2me.essentials.Essentials;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
@@ -22,6 +21,8 @@ public final class Raidwatcher extends JavaPlugin implements Listener {
     //どこでも使えるように一応(初期化おっせーのでnullにアクセスしないよう注意)
     public static Config CONFIG;
     public static Logger LOGGER;
+
+    private Essentials ess;
 
     //変数をｲｯｷに宣言
     public long loginRateTickCounter = 0;
@@ -47,6 +48,8 @@ public final class Raidwatcher extends JavaPlugin implements Listener {
         //イベント関連初期化
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getScheduler().runTaskTimer(this, this::onTick, 0, 1);
+
+        ess = (Essentials) getServer().getPluginManager().getPlugin("essentials");
     }
 
     public void onTick() {
@@ -83,23 +86,13 @@ public final class Raidwatcher extends JavaPlugin implements Listener {
 
         final UUID uuid = event.getPlayer().getUniqueId();
 
-        //期限ミュートされてる人が発言できないようにしてる
-        if (PenaltyLog.logs.stream().anyMatch(log -> {
-            if (log instanceof MutePenaltyLog muteLog)
-                return uuid.equals(muteLog.uuid) && muteLog.mute.toEpochMilli() > Instant.now().toEpochMilli();
-            else return false;
-        })) {
-            event.setCancelled(true);
-            event.getPlayer().sendMessage(Component.text("あなたは期限ミュートされています。").color(TextColor.color(0xFF0000)));
-            return;
-        }
-
         chatRate.put(uuid, chatRate.getOrDefault(uuid, 0) + 1);
         if (chatRate.get(uuid) > CONFIG.spamDetector().allowed()) {
-            PenaltyLog.logs.add(new MutePenaltyLog(
-                    uuid,
-                    Instant.now(),
-                    Instant.now().plusSeconds(CONFIG.spamDetector().penaltyMute())));
+            var user = ess.getUser(event.getPlayer());
+            event.setCancelled(true);
+            user.setMuted(true);
+            user.setMuteReason("spam");
+            user.setMuteTimeout(Instant.now().plusSeconds(CONFIG.spamDetector().penaltyMute()).toEpochMilli());
             if (CONFIG.spamDetector().penaltyKick()) Bukkit.getScheduler().runTask(this, () -> {
                 if (getServer().getPlayer(uuid) != null) Objects.requireNonNull(getServer().getPlayer(uuid))
                         .kick(Component.text("スパム行為が検知されました。")
@@ -112,10 +105,10 @@ public final class Raidwatcher extends JavaPlugin implements Listener {
                 .serialize(event.message())
                 .matches(word))) {
             event.setCancelled(true);
-            PenaltyLog.logs.add(new MutePenaltyLog(
-                    uuid,
-                    Instant.now(),
-                    Instant.now().plusSeconds(CONFIG.chatFilter().penaltyMute())));
+            var user = ess.getUser(event.getPlayer());
+            user.setMuted(true);
+            user.setMuteReason("blocked word");
+            user.setMuteTimeout(Instant.now().plusSeconds(CONFIG.chatFilter().penaltyMute()).toEpochMilli());
             if (CONFIG.chatFilter().penaltyKick()) Bukkit.getScheduler().runTask(this, () ->
                     event.getPlayer().kick(Component.text("あなたのチャットには禁止ワードが含まれていました。").color(TextColor.color(0xFF0000))));
         }

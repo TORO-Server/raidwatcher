@@ -6,10 +6,12 @@ plugins {
 repositories {
 	mavenCentral()
 	maven("https://repo.papermc.io/repository/maven-public/")
+	maven("https://repo.essentialsx.net/releases")
 }
 
 dependencies {
 	compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
+	compileOnly("net.essentialsx:EssentialsX:2.21.0")
 }
 
 java {
