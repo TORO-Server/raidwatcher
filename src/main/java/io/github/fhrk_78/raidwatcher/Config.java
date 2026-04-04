@@ -12,38 +12,21 @@ public record Config(
     static class IllegalConfigFormatException extends Exception {}
 
     static Config asConfig(FileConfiguration file) throws IllegalConfigFormatException {
-        // バカみたいな検査のための式
-        if (!(file.isInt("HighRateLoginBlocker.allowed")
-                && file.isString("HighRateLoginBlocker.per")
-                && Utils.isThisTimeText(file.getString("HighRateLoginBlocker.per"))
-                && file.isString("HighRateLoginBlocker.cooldown")
-                && Utils.isThisTimeText(file.getString("HighRateLoginBlocker.cooldown"))
-                && file.isInt("SpamDetector.allowed")
-                && file.isString("SpamDetector.per")
-                && Utils.isThisTimeText(file.getString("SpamDetector.per"))
-                && file.isString("SpamDetector.penalty.mute")
-                && Utils.isThisTimeText(file.getString("SpamDetector.penalty.mute"))
-                && file.isBoolean("SpamDetector.penalty.kick")
-                && file.isList("ChatFilter.pattern")
-                && file.isString("ChatFilter.penalty.mute")
-                && Utils.isThisTimeText(file.getString("ChatFilter.penalty.mute"))
-                && file.isBoolean("ChatFilter.penalty.kick"))) throw new IllegalConfigFormatException();
-
         return new Config(
                 new HighRateLoginBlocker(
                         file.getInt("HighRateLoginBlocker.allowed"),
-                        Utils.timeTextToSec(file.getString("HighRateLoginBlocker.per")),
-                        Utils.timeTextToSec(file.getString("HighRateLoginBlocker.cooldown"))
+                        file.getInt("HighRateLoginBlocker.per"),
+                        file.getString("HighRateLoginBlocker.cooldown")
                 ),
                 new SpamDetector(
                         file.getInt("SpamDetector.allowed"),
-                        Utils.timeTextToSec(file.getString("SpamDetector.per")),
-                        Utils.timeTextToSec(file.getString("SpamDetector.penalty.mute")),
+                        file.getInt("SpamDetector.per"),
+                        file.getString("SpamDetector.penalty.mute"),
                         file.getBoolean("SpamDetector.penalty.kick")
                 ),
                 new ChatFilter(
                         file.getStringList("ChatFilter.pattern"),
-                        Utils.timeTextToSec(file.getString("ChatFilter.penalty.mute")),
+                        file.getString("ChatFilter.penalty.mute"),
                         file.getBoolean("ChatFilter.penalty.kick")
                 )
         );
@@ -51,18 +34,18 @@ public record Config(
 
     record HighRateLoginBlocker(
             int allowed,
-            long per,
-            long cooldown
+            int per,
+            String cooldown
     ) {}
     record SpamDetector(
             int allowed,
-            long per,
-            long penaltyMute,
+            int per,
+            String penaltyMute,
             boolean penaltyKick
     ) {}
     record ChatFilter(
             List<String> pattern,
-            long penaltyMute,
+            String penaltyMute,
             boolean penaltyKick
     ) {}
 }

@@ -1,11 +1,11 @@
 HighRateLoginBlocker:
   allowed: 3
-  per: 10s
+  per: 200
   cooldown: 10s
 
 SpamDetector:
   allowed: 1
-  per: 1s
+  per: 20
   penalty:
     mute: 1m
     kick: true
