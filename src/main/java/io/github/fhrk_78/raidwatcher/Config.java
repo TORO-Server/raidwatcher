@@ -7,8 +7,7 @@ import java.util.List;
 public record Config(
         HighRateLoginBlocker highRateLoginBlocker,
         SpamDetector spamDetector,
-        ChatFilter chatFilter,
-        List<String> bypassRole
+        ChatFilter chatFilter
 ) {
     static class IllegalConfigFormatException extends Exception {}
 
@@ -28,8 +27,7 @@ public record Config(
                 && file.isList("ChatFilter.pattern")
                 && file.isString("ChatFilter.penalty.mute")
                 && Utils.isThisTimeText(file.getString("ChatFilter.penalty.mute"))
-                && file.isBoolean("ChatFilter.penalty.kick")
-                && file.isList("BypassRole"))) throw new IllegalConfigFormatException();
+                && file.isBoolean("ChatFilter.penalty.kick"))) throw new IllegalConfigFormatException();
 
         return new Config(
                 new HighRateLoginBlocker(
@@ -47,8 +45,7 @@ public record Config(
                         file.getStringList("ChatFilter.pattern"),
                         Utils.timeTextToSec(file.getString("ChatFilter.penalty.mute")),
                         file.getBoolean("ChatFilter.penalty.kick")
-                ),
-                file.getStringList("BypassRole")
+                )
         );
     }
 

@@ -1,6 +1,5 @@
 package io.github.fhrk_78.raidwatcher;
 
-import java.util.Locale;
 import java.util.regex.Pattern;
 
 public class Utils {
