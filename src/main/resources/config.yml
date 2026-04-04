@@ -1,0 +1,19 @@
+HighRateLoginBlocker:
+  allowed: 3
+  per: 10s
+  cooldown: 10s
+
+SpamDetector:
+  allowed: 1
+  per: 1s
+  penalty:
+    mute: 1m
+    kick: true
+
+ChatFilter:
+  pattern:
+    - "ディープステート"
+    - "^正規表現(も|が)使えます$"
+  penalty:
+    mute: 1m
+    kick: true
