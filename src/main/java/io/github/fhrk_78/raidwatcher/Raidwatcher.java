@@ -108,7 +108,7 @@ public final class Raidwatcher extends JavaPlugin implements Listener {
             var user = ess.getUser(event.getPlayer());
             user.setMuted(true);
             user.setMuteReason("blocked word");
-            user.setMuteTimeout(Instant.now().plusSeconds(CONFIG.spamDetector().penaltyMute()).toEpochMilli());
+            user.setMuteTimeout(Instant.now().plusSeconds(CONFIG.chatFilter().penaltyMute()).toEpochMilli());
             if (CONFIG.chatFilter().penaltyKick()) Bukkit.getScheduler().runTask(this, () ->
                     event.getPlayer().kick(Component.text("あなたのチャットには禁止ワードが含まれていました。").color(TextColor.color(0xFF0000))));
         }
