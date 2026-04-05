@@ -112,10 +112,8 @@ public final class Raidwatcher extends JavaPlugin implements Listener {
         }
 
         //ChatFilter
-        if (CONFIG.chatFilter().enable() && CONFIG.chatFilter().pattern().stream().anyMatch(word -> PlainTextComponentSerializer
-                .plainText()
-                .serialize(event.message())
-                .matches(word))) {
+        if (CONFIG.chatFilter().enable() && CONFIG.chatFilter().pattern().stream().anyMatch(pattern ->
+                pattern.matcher(PlainTextComponentSerializer.plainText().serialize(event.message())).find())) {
             event.setCancelled(true);
             try {
                 var user = ess.getUser(event.getPlayer());

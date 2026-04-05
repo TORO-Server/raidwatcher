@@ -3,6 +3,7 @@ package io.github.fhrk_78.raidwatcher;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 public record Config(
         HighRateLoginBlocker highRateLoginBlocker,
@@ -29,7 +30,10 @@ public record Config(
                 ),
                 new ChatFilter(
                         file.getBoolean("ChatFilter.enable"),
-                        file.getStringList("ChatFilter.pattern"),
+                        file.getStringList("ChatFilter.pattern")
+                                .stream()
+                                .map(Pattern::compile)
+                                .toList(),
                         file.getString("ChatFilter.penalty.mute"),
                         file.getBoolean("ChatFilter.penalty.kick")
                 ),
@@ -54,7 +58,7 @@ public record Config(
     ) {}
     record ChatFilter(
             boolean enable,
-            List<String> pattern,
+            List<Pattern> pattern,
             String penaltyMute,
             boolean penaltyKick
     ) {}
