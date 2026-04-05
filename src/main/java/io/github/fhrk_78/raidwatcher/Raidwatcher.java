@@ -17,6 +17,7 @@ import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 public final class Raidwatcher extends JavaPlugin implements Listener {
@@ -27,9 +28,9 @@ public final class Raidwatcher extends JavaPlugin implements Listener {
     private Essentials ess;
 
     //変数をｲｯｷに宣言
-    public int loginRate = 0;
+    public AtomicInteger loginRate = new AtomicInteger(0);
     public long lockdownEnd = 0;
-    public HashMap<UUID, Integer> chatRate = new HashMap<>();
+    public HashMap<UUID, AtomicInteger> chatRate = new HashMap<>();
 
     @Override
     public void onEnable() {
@@ -47,8 +48,8 @@ public final class Raidwatcher extends JavaPlugin implements Listener {
 
         //イベント関連初期化
         getServer().getPluginManager().registerEvents(this, this);
-        getServer().getScheduler().runTaskTimer(this, () -> loginRate = 0, 0, CONFIG.highRateLoginBlocker().per());
-        getServer().getScheduler().runTaskTimer(this, () -> chatRate.replaceAll((u, v) -> 0), 0, CONFIG.spamDetector().per());
+        getServer().getScheduler().runTaskTimer(this, () -> loginRate.set(0), 0, CONFIG.highRateLoginBlocker().per());
+        getServer().getScheduler().runTaskTimer(this, () -> chatRate.forEach((k, v) -> v.set(0)), 0, CONFIG.spamDetector().per());
 
         ess = (Essentials) getServer().getPluginManager().getPlugin("essentials");
     }
@@ -72,9 +73,9 @@ public final class Raidwatcher extends JavaPlugin implements Listener {
 
         //高速複数アカウントログインへの対抗
         if (CONFIG.highRateLoginBlocker().enable()) {
-            loginRate++;
+            loginRate.incrementAndGet();
 
-            if (loginRate > CONFIG.highRateLoginBlocker().allowed()) {
+            if (loginRate.get() > CONFIG.highRateLoginBlocker().allowed()) {
                 try {
                     lockdownEnd = DateUtil.parseDateDiff(CONFIG.highRateLoginBlocker().cooldown(), true);
                 } catch (Exception ignored) {}
@@ -93,8 +94,9 @@ public final class Raidwatcher extends JavaPlugin implements Listener {
         final UUID uuid = event.getPlayer().getUniqueId();
 
         if (CONFIG.spamDetector().enable()) {
-            chatRate.put(uuid, chatRate.getOrDefault(uuid, 0) + 1);
-            if (chatRate.get(uuid) > CONFIG.spamDetector().allowed()) {
+            if (chatRate.containsKey(uuid)) chatRate.get(uuid).incrementAndGet();
+            else chatRate.put(uuid, new AtomicInteger());
+            if (chatRate.get(uuid).get() > CONFIG.spamDetector().allowed()) {
                 event.setCancelled(true);
                 try {
                     var user = ess.getUser(event.getPlayer());
