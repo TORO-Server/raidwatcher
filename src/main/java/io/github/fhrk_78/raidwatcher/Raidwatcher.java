@@ -48,8 +48,10 @@ public final class Raidwatcher extends JavaPlugin implements Listener {
 
         //イベント関連初期化
         getServer().getPluginManager().registerEvents(this, this);
-        getServer().getScheduler().runTaskTimer(this, () -> loginRate.set(0), 0, CONFIG.highRateLoginBlocker().per());
-        getServer().getScheduler().runTaskTimer(this, () -> chatRate.forEach((k, v) -> v.set(0)), 0, CONFIG.spamDetector().per());
+        getServer().getScheduler().runTaskTimer(this,
+                () -> loginRate.set(0), 0, CONFIG.highRateLoginBlocker().per());
+        getServer().getScheduler().runTaskTimer(this,
+                () -> chatRate.forEach((k, v) -> v.set(0)), 0, CONFIG.spamDetector().per());
 
         ess = (Essentials) getServer().getPluginManager().getPlugin("essentials");
     }
@@ -68,7 +70,8 @@ public final class Raidwatcher extends JavaPlugin implements Listener {
                 .anyMatch(ip -> ip.equals(event.getAddress().getHostAddress()))
         ) {
             event.disallow(PlayerLoginEvent.Result.KICK_OTHER,
-                    Component.text("同一IPでの同時ログインは禁止されています。ご確認ください。").color(TextColor.color(0xFF0000)));
+                    Component.text("同一IPでの同時ログインは禁止されています。ご確認ください。")
+                            .color(TextColor.color(0xFF0000)));
         }
 
         //高速複数アカウントログインへの対抗
@@ -122,7 +125,8 @@ public final class Raidwatcher extends JavaPlugin implements Listener {
                 user.setMuteTimeout(DateUtil.parseDateDiff(CONFIG.chatFilter().penaltyMute(), true));
             } catch (Exception ignored) {}
             if (CONFIG.chatFilter().penaltyKick()) Bukkit.getScheduler().runTask(this, () ->
-                    event.getPlayer().kick(Component.text("あなたのチャットには禁止ワードが含まれていました。").color(TextColor.color(0xFF0000))));
+                    event.getPlayer().kick(Component.text("あなたのチャットには禁止ワードが含まれていました。")
+                            .color(TextColor.color(0xFF0000))));
         }
     }
 }
