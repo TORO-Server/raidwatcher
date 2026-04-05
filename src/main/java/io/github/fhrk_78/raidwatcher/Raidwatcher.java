@@ -73,8 +73,6 @@ public final class Raidwatcher extends JavaPlugin implements Listener {
 
         //高速複数アカウントログインへの対抗
         if (CONFIG.highRateLoginBlocker().enable()) {
-            loginRate.incrementAndGet();
-
             if (loginRate.get() > CONFIG.highRateLoginBlocker().allowed()) {
                 try {
                     lockdownEnd = DateUtil.parseDateDiff(CONFIG.highRateLoginBlocker().cooldown(), true);
@@ -84,6 +82,8 @@ public final class Raidwatcher extends JavaPlugin implements Listener {
             if (lockdownEnd > System.currentTimeMillis())
                 event.disallow(PlayerLoginEvent.Result.KICK_OTHER,
                         Component.text("現在、サーバーが大変込み合っておりますので入室制限をかけております。時間を置いて再度お試しください。"));
+
+            loginRate.incrementAndGet();
         }
     }
 
