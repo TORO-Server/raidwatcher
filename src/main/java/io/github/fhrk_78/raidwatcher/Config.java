@@ -6,29 +6,29 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 public record Config(
-        HighRateLoginBlocker highRateLoginBlocker,
-        SpamDetector spamDetector,
-        ChatFilter chatFilter,
-        OneIPMultiAccountBlocker oneIPMultiAccountBlocker
+        HighRateLoginBlockerConfig highRateLoginBlockerConfig,
+        SpamDetectorConfig spamDetectorConfig,
+        ChatFilterConfig chatFilterConfig,
+        OneIPMultiAccountBlockerConfig oneIPMultiAccountBlockerConfig
 ) {
     static class IllegalConfigFormatException extends Exception {}
 
     static Config asConfig(FileConfiguration file) throws IllegalConfigFormatException {
         return new Config(
-                new HighRateLoginBlocker(
+                new HighRateLoginBlockerConfig(
                         file.getBoolean("HighRateLoginBlocker.enable"),
                         file.getInt("HighRateLoginBlocker.allowed"),
                         file.getInt("HighRateLoginBlocker.per"),
                         file.getString("HighRateLoginBlocker.cooldown")
                 ),
-                new SpamDetector(
+                new SpamDetectorConfig(
                         file.getBoolean("SpamDetector.enable"),
                         file.getInt("SpamDetector.allowed"),
                         file.getInt("SpamDetector.per"),
                         file.getString("SpamDetector.penalty.mute"),
                         file.getBoolean("SpamDetector.penalty.kick")
                 ),
-                new ChatFilter(
+                new ChatFilterConfig(
                         file.getBoolean("ChatFilter.enable"),
                         file.getStringList("ChatFilter.pattern")
                                 .stream()
@@ -37,32 +37,32 @@ public record Config(
                         file.getString("ChatFilter.penalty.mute"),
                         file.getBoolean("ChatFilter.penalty.kick")
                 ),
-                new OneIPMultiAccountBlocker(
+                new OneIPMultiAccountBlockerConfig(
                         file.getBoolean("OneIPMultiAccountBlocker.enable")
                 )
         );
     }
 
-    record HighRateLoginBlocker(
+    public record HighRateLoginBlockerConfig(
             boolean enable,
             int allowed,
             int per,
             String cooldown
     ) {}
-    record SpamDetector(
+    public record SpamDetectorConfig(
             boolean enable,
             int allowed,
             int per,
             String penaltyMute,
             boolean penaltyKick
     ) {}
-    record ChatFilter(
+    public record ChatFilterConfig(
             boolean enable,
             List<Pattern> pattern,
             String penaltyMute,
             boolean penaltyKick
     ) {}
-    record OneIPMultiAccountBlocker(
+    public record OneIPMultiAccountBlockerConfig(
             boolean enable
     ) {}
 }
