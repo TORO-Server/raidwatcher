@@ -15,6 +15,12 @@ final class ChatCommands {
             "etell", "emsg", "ewhisper", "epm");
     //本文だけを書くコマンド
     private static final Set<String> REPLY = Set.of("reply", "r", "ereply", "er");
+    //本文だけを書いて全体やチームへ発言するコマンド (バニラの /me、/teammsg と Essentials の別名を含む)
+    private static final Set<String> BROADCAST = Set.of(
+            "me", "eme", "action", "describe", "eaction", "edescribe",
+            "teammsg", "tm");
+    //Essentials のメール。本文を送るのは「/mail send 宛先 本文」の形だけ
+    private static final Set<String> MAIL = Set.of("mail", "email");
     //「/ch チャンネル 本文」と「/ch join チャンネル 本文」でチャンネルに発言できるコマンド
     private static final Set<String> CHANNEL = Set.of("lunachat", "ch", "lc");
 
@@ -32,6 +38,10 @@ final class ChatCommands {
 
         if (TELL.contains(command)) return message(parts, 2, true);
         if (REPLY.contains(command)) return message(parts, 1, true);
+        if (BROADCAST.contains(command)) return message(parts, 1, true);
+        if (MAIL.contains(command)) {
+            return parts.length > 1 && parts[1].equalsIgnoreCase("send") ? message(parts, 3, true) : null;
+        }
         if (CHANNEL.contains(command)) {
             return message(parts, parts.length > 1 && parts[1].equalsIgnoreCase("join") ? 3 : 2, false);
         }

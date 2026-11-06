@@ -19,6 +19,23 @@ class ChatCommandsTest {
     }
 
     @Test
+    void broadcastCommandsHaveNoTarget() {
+        assertEquals(new ChatCommands.Message("waves hello", true), ChatCommands.parse("/me waves hello"));
+        assertEquals(new ChatCommands.Message("hi", true), ChatCommands.parse("/eme hi"));
+        assertEquals(new ChatCommands.Message("dances", true), ChatCommands.parse("/minecraft:me dances"));
+        assertEquals(new ChatCommands.Message("go now", true), ChatCommands.parse("/teammsg go now"));
+        assertEquals(new ChatCommands.Message("go", true), ChatCommands.parse("/tm go"));
+    }
+
+    @Test
+    void mailSendSkipsTheSubcommandAndTarget() {
+        assertEquals(new ChatCommands.Message("hello there", true), ChatCommands.parse("/mail send Steve hello there"));
+        assertEquals(new ChatCommands.Message("hi", true), ChatCommands.parse("/email SEND Steve hi"));
+        assertNull(ChatCommands.parse("/mail read"));
+        assertNull(ChatCommands.parse("/mail clear"));
+    }
+
+    @Test
     void channelCommandsAreCheckedButNotCountedAsMessages() {
         assertEquals(new ChatCommands.Message("hello", false), ChatCommands.parse("/ch general hello"));
         assertEquals(new ChatCommands.Message("hello", false), ChatCommands.parse("/lunachat join general hello"));
@@ -29,6 +46,8 @@ class ChatCommandsTest {
         assertNull(ChatCommands.parse("/tell Steve"));
         assertNull(ChatCommands.parse("/tell"));
         assertNull(ChatCommands.parse("/r"));
+        assertNull(ChatCommands.parse("/me"));
+        assertNull(ChatCommands.parse("/mail send Steve"));
         assertNull(ChatCommands.parse("/ch general"));
         assertNull(ChatCommands.parse("/ch join general"));
     }
