@@ -1,8 +1,17 @@
 HighRateLoginBlocker:
   enable: true
+  # per の間に、1つのアカウントがログインできる回数。超えた人だけ断ります
   allowed: 3
+  # 数える長さ (tick。20 tick = 1秒)
   per: 200
+  # globalAllowed を超えたときに、全員の入室を止める長さ
   cooldown: 10s
+  # per の間に、1つのIPからログインできる回数。超えた人だけ断ります
+  ipAllowed: 10
+  # per の間に、サーバー全体でログインできる回数。超えると cooldown のあいだ全員の入室を止めます
+  # TORO-Proxy が再起動のあとで戻す速さ (既定で3秒に5人。10秒で最大20人) より大きくします
+  # return-batch-size を増やしたら、これも増やします
+  globalAllowed: 40
 
 SpamDetector:
   enable: true

@@ -5,13 +5,31 @@ plugins {
 
 repositories {
 	mavenCentral()
-	maven("https://repo.papermc.io/repository/maven-public/")
-	maven("https://repo.essentialsx.net/releases")
+	maven("https://repo.papermc.io/repository/maven-public/") {
+		content {
+			includeGroup("io.papermc.paper")
+			includeGroup("io.papermc")
+			includeGroup("net.md-5")
+			includeGroup("org.spigotmc")
+		}
+	}
+	maven("https://repo.essentialsx.net/releases") {
+		content {
+			includeGroupByRegex("net\\.essentialsx(\\..*)?")
+		}
+	}
 }
 
 dependencies {
 	compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
 	compileOnly("net.essentialsx:EssentialsX:2.21.0")
+
+	testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
+	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+configurations.testImplementation {
+	extendsFrom(configurations.compileOnly.get())
 }
 
 java {
@@ -32,5 +50,9 @@ tasks {
 		filesMatching("paper-plugin.yml") {
 			expand(props)
 		}
+	}
+
+	test {
+		useJUnitPlatform()
 	}
 }
